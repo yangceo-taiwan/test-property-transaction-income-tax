@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>宏國地政｜易丞地政 - 舊制財產交易所得稅精算 V21.6</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) return false; // F12
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; // Ctrl+Shift+I
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; // Ctrl+Shift+C
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; // Ctrl+Shift+J
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; // Ctrl+U
+            if(e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) return false; // Ctrl+S (存檔)
+        }
+    </script>
     <style>
         :root {
             --primary: #1A3C5C; /* 宏國深藍 */
@@ -18,7 +30,10 @@
             --fb-blue: #1877F2;
         }
 
-        * { box-sizing: border-box; outline: none; }
+        /* 增加 user-select: none 防止文字被輕易選取複製，但在輸入框中允許 */
+        * { box-sizing: border-box; outline: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+        input, select, textarea { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
+
         body { 
             font-family: 'Noto Sans TC', sans-serif; 
             background: var(--light); 
@@ -108,6 +123,9 @@
         
         /* --- Mobile Print Optimization --- */
         @media print {
+            /* 允許列印時選取文字 */
+            * { -webkit-user-select: auto !important; user-select: auto !important; }
+            
             /* 隱藏不必要的介面元素 */
             .btn-contact, .tab-group, .btn-calc, #helperB, .helper-box button { display: none !important; }
             
@@ -401,7 +419,7 @@
         }
     }
 
-    // --- 情境 A 計算邏輯 (核心修正) ---
+    // --- 情境 A 計算邏輯 ---
     function calcA() {
         let houseVal = parseFloat(document.getElementById('houseVal_A').value) || 0;
         let distRate = parseFloat(document.getElementById('district_A').value) || 0;
@@ -454,7 +472,7 @@
             document.getElementById('result_A').innerText = income.toLocaleString() + " 元";
 
         } else {
-            // --- 一般模式 (修正：直接用現值 x 稅率) ---
+            // --- 一般模式 ---
             luxuryZone.style.display = 'none';
             document.getElementById('luxuryMsg_A').style.display = 'none';
             
