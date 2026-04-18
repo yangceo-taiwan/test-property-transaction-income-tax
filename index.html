@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宏國地政｜易丞地政 - 舊制財產交易所得稅精算 V21.6</title>
+    <title>宏國地政｜易丞地政 - 舊制財產交易所得稅精算 V21.6 (SSO Edition)</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <script>
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.onkeydown = function(e) {
@@ -18,6 +21,9 @@
         }
     </script>
     <style>
+        /* =========================================
+           STYLE LOCKING: 原有樣式完全保留
+           ========================================= */
         :root {
             --primary: #1A3C5C; /* 宏國深藍 */
             --gold: #C5A065;    /* 質感金 */
@@ -123,250 +129,324 @@
         
         /* --- Mobile Print Optimization --- */
         @media print {
-            /* 允許列印時選取文字 */
             * { -webkit-user-select: auto !important; user-select: auto !important; }
-            
-            /* 隱藏不必要的介面元素 */
             .btn-contact, .tab-group, .btn-calc, #helperB, .helper-box button { display: none !important; }
-            
-            /* 強制顯示所有內容，或只顯示當前 */
             body { background: white; padding: 0; font-size: 12pt; }
             .container { width: 100%; max-width: none; margin: 0; }
             .header { box-shadow: none; border: none; padding-bottom: 0; margin-bottom: 10px; }
-            
-            /* 關鍵修正：確保當前卡片可見 */
             .card { display: none; border: 1px solid #000; box-shadow: none; break-inside: avoid; margin-bottom: 20px; }
             .card.active { display: block !important; }
-            
-            /* 浮水印調整 */
             .watermark-container { position: absolute; top: 200px; opacity: 0.05; }
-            
-            /* 結果區塊樣式 */
             .result-box { border: 1px solid #999; background: none; }
             .luxury-warning { border: 1px solid #000; background: none; color: #000; }
-            
-            /* 確保文字顏色為深色 */
             * { color: #000 !important; }
+            
+            /* 列印時隱藏門禁畫面 */
+            #nexus-auth-gate { display: none !important; }
+            #main-content { display: block !important; }
         }
+
+        /* --- SSO 門禁按鈕樣式 --- */
+        .btn-line-solid { background-color: var(--line-green); color: white; transition: background-color 0.3s; border: none; }
+        .btn-line-solid:hover { background-color: #05b34c; }
     </style>
 </head>
 <body>
 
-<div class="watermark-container">
-    <img src="宏國地政封面.jpg" alt="宏國">
-    <img src="易丞logo-01.jpg" alt="易丞">
+<div id="nexus-auth-gate" class="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b from-[#0F2E46] to-[#162a3b] text-white fixed inset-0 z-[9999]" style="display: flex;">
+    <div class="bg-white text-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center transform transition-all relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#C5A065] opacity-10 rounded-full blur-2xl"></div>
+        <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-[#C5A065] shadow-inner">
+            <i class="fas fa-shield-alt text-3xl text-[#C5A065]"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-[#0F2E46] mb-2">宏國專屬試算系統</h2>
+        <p class="text-sm text-gray-500 mb-6 leading-relaxed">
+            本系統為宏國地政內部高階工具。<br>為保障服務品質，請透過官方帳號驗證身分。
+        </p>
+        <div id="auth-error-msg" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 font-bold flex items-start gap-2 text-left" style="display: none;">
+            <i class="fas fa-exclamation-circle mt-0.5"></i>
+            <span id="auth-error-text"></span>
+        </div>
+        <button onclick="loginWithLine()" class="w-full btn-line-solid rounded-xl py-4 flex items-center justify-center font-bold text-base shadow-lg transform transition active:scale-95 hover:shadow-xl cursor-pointer">
+            <i class="fab fa-line text-2xl mr-2"></i> 使用 LINE 登入並解鎖
+        </button>
+        <div class="text-[10px] text-gray-400 mt-4">
+            <i class="fas fa-lock mr-1"></i> 經由 LINE OAuth 2.0 安全授權
+        </div>
+    </div>
+    <div class="mt-8 text-xs text-blue-200 opacity-60 tracking-widest">© 2026 宏國地政 | 易丞地政</div>
 </div>
 
-<div class="header">
-    <div class="logo-group">
-        <img src="宏國地政封面.jpg" alt="宏國地政">
-        <img src="易丞logo-01.jpg" alt="易丞地政">
-    </div>
-    <h1>宏國地政｜易丞地政</h1>
-    <div class="subtitle">舊制財產交易所得稅精算系統 V21.6</div>
-</div>
-
-<div class="container">
-
-    <div class="tab-group">
-        <div class="tab active" onclick="switchTab('tab1')">情境 A：標準認定<br><span style="font-size:0.75rem">(101.08前 / 豪宅稅)</span></div>
-        <div class="tab" onclick="switchTab('tab2')">情境 B：核實認定<br><span style="font-size:0.75rem">(101.08後 / 建商交易)</span></div>
+<div id="main-content" style="display: none;">
+    <div class="watermark-container">
+        <img src="宏國地政封面.jpg" alt="宏國" onerror="this.style.display='none'">
+        <img src="易丞logo-01.jpg" alt="易丞" onerror="this.style.display='none'">
     </div>
 
-    <div id="tab1" class="card active">
-        <div class="card-header">情境 A：無法舉證成本 (依標準率或豪宅計算)</div>
+    <div class="header">
+        <div class="logo-group">
+            <img src="宏國地政封面.jpg" alt="宏國地政" onerror="this.style.display='none'">
+            <img src="易丞logo-01.jpg" alt="易丞地政" onerror="this.style.display='none'">
+        </div>
+        <h1>宏國地政｜易丞地政</h1>
+        <div class="subtitle">舊制財產交易所得稅精算系統 V21.6</div>
+    </div>
 
-        <div class="helper-box">
-            <div class="helper-title">💡 從稅單反推房屋現值</div>
+    <div class="container">
+
+        <div class="tab-group">
+            <div class="tab active" onclick="switchTab('tab1')">情境 A：標準認定<br><span style="font-size:0.75rem">(101.08前 / 豪宅稅)</span></div>
+            <div class="tab" onclick="switchTab('tab2')">情境 B：核實認定<br><span style="font-size:0.75rem">(101.08後 / 建商交易)</span></div>
+        </div>
+
+        <div id="tab1" class="card active">
+            <div class="card-header">情境 A：無法舉證成本 (依標準率或豪宅計算)</div>
+
+            <div class="helper-box">
+                <div class="helper-title">💡 從稅單反推房屋現值</div>
+                <div class="input-row">
+                    <div class="input-col">
+                        <label class="label">房屋稅單金額</label>
+                        <input type="number" id="taxBill_A" placeholder="元">
+                    </div>
+                    <div class="input-col">
+                        <label class="label">稅率</label>
+                        <select id="taxRate_A">
+                            <option value="1.2">1.2% (住家)</option>
+                            <option value="1.5">1.5% (非住非營)</option>
+                            <option value="3">3.0% (營業)</option>
+                        </select>
+                    </div>
+                    <div class="input-col" style="flex:0 0 60px;">
+                        <button class="btn-calc" onclick="calcHouseVal('A')">反推</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="label">房屋評定現值 (元)</label>
+                <input type="number" id="houseVal_A" placeholder="輸入金額" oninput="calcA()">
+            </div>
+
             <div class="input-row">
                 <div class="input-col">
-                    <label class="label">房屋稅單金額</label>
-                    <input type="number" id="taxBill_A" placeholder="元">
-                </div>
-                <div class="input-col">
-                    <label class="label">稅率</label>
-                    <select id="taxRate_A">
-                        <option value="1.2">1.2% (住家)</option>
-                        <option value="1.5">1.5% (非住非營)</option>
-                        <option value="3">3.0% (營業)</option>
+                    <label class="label">交易縣市</label>
+                    <select id="city_A" onchange="updateDistricts('A'); calcA();">
+                        <option value="">請選擇</option>
+                        <option value="Taipei">臺北市</option>
+                        <option value="NewTaipei">新北市</option>
+                        <option value="Taoyuan">桃園市</option>
+                        <option value="Taichung">臺中市</option>
+                        <option value="Tainan">臺南市</option>
+                        <option value="Kaohsiung">高雄市</option>
+                        <option value="OtherCity">其他縣市</option>
                     </select>
                 </div>
-                <div class="input-col" style="flex:0 0 60px;">
-                    <button class="btn-calc" onclick="calcHouseVal('A')">反推</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="input-group">
-            <label class="label">房屋評定現值 (元)</label>
-            <input type="number" id="houseVal_A" placeholder="輸入金額" oninput="calcA()">
-        </div>
-
-        <div class="input-row">
-            <div class="input-col">
-                <label class="label">交易縣市</label>
-                <select id="city_A" onchange="updateDistricts('A'); calcA();">
-                    <option value="">請選擇</option>
-                    <option value="Taipei">臺北市</option>
-                    <option value="NewTaipei">新北市</option>
-                    <option value="Taoyuan">桃園市</option>
-                    <option value="Taichung">臺中市</option>
-                    <option value="Tainan">臺南市</option>
-                    <option value="Kaohsiung">高雄市</option>
-                    <option value="OtherCity">其他縣市</option>
-                </select>
-            </div>
-            <div class="input-col">
-                <label class="label">行政區</label>
-                <select id="district_A" onchange="calcA()">
-                    <option value="0">請選擇</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="input-row">
-            <div class="input-col">
-                <label class="label">房地成交總價 (萬)</label>
-                <input type="number" id="totalPrice_A" placeholder="豪宅判斷用" oninput="calcA()">
-            </div>
-            <div class="input-col">
-                <label class="label">專有坪數</label>
-                <input type="number" id="areaPing_A" placeholder="不含車位" oninput="calcA()">
-            </div>
-        </div>
-
-        <div id="luxuryMsg_A" class="luxury-warning">
-            ⚠️ <strong>已達豪宅門檻！</strong><br>
-            <span id="luxuryReason_A"></span><br>
-            計算公式變更為：成交總價 × 房地比 × 20%
-        </div>
-
-        <div id="luxuryZone_A" class="luxury-calc-zone">
-            <span style="font-weight:bold; color:var(--accent-red); margin-bottom:10px; display:block;">📐 豪宅稅需計算房地比：</span>
-            <div class="input-row">
                 <div class="input-col">
-                    <label class="label">土地公告現值 (元/m²)</label>
-                    <input type="number" id="landPrice_A" oninput="calcA()">
-                </div>
-                <div class="input-col">
-                    <label class="label">土地面積 (m²)</label>
-                    <input type="number" id="landArea_A" oninput="calcA()">
+                    <label class="label">行政區</label>
+                    <select id="district_A" onchange="calcA()">
+                        <option value="0">請選擇</option>
+                    </select>
                 </div>
             </div>
-            <div class="input-group">
-                <label class="label">土地公告現值總額</label>
-                <input type="number" id="totalLandVal_A" class="input-readonly" readonly>
-            </div>
-        </div>
-
-        <div class="result-box">
-            <div class="result-row">
-                <span>計算說明：</span>
-                <span class="result-val" id="calcMethod_A" style="font-size:0.9rem; font-weight:normal;">尚未計算</span>
-            </div>
-            <div class="result-row">
-                <span>核定財產交易所得：</span>
-                <span class="result-val highlight" id="result_A">0 元</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="tab2" class="card">
-        <div class="card-header">情境 B：核實認定 (有成本證明)</div>
-
-        <div class="input-row">
-            <div class="input-col">
-                <label class="label">賣出總額 (萬)</label>
-                <input type="number" id="sellPrice_B" oninput="calcB()">
-            </div>
-            <div class="input-col">
-                <label class="label">買入總額 (萬)</label>
-                <input type="number" id="buyPrice_B" oninput="calcB()">
-            </div>
-        </div>
-        <div class="input-group">
-            <label class="label">相關費用 (萬) <span style="font-size:0.8rem; font-weight:normal;">(仲介/代書/契稅/裝修)</span></label>
-            <input type="number" id="expenses_B" value="0" oninput="calcB()">
-        </div>
-
-        <div class="helper-box" style="border-color: var(--primary);">
-            <div class="helper-title">📐 房地比計算</div>
             
             <div class="input-row">
                 <div class="input-col">
-                    <label class="label">土地公告現值</label>
-                    <input type="number" id="landPricePerSqm" oninput="calcLandValB()">
+                    <label class="label">房地成交總價 (萬)</label>
+                    <input type="number" id="totalPrice_A" placeholder="豪宅判斷用" oninput="calcA()">
                 </div>
                 <div class="input-col">
-                    <label class="label">土地面積 (m²)</label>
-                    <input type="number" id="landAreaSqm" oninput="calcLandValB()">
+                    <label class="label">專有坪數</label>
+                    <input type="number" id="areaPing_A" placeholder="不含車位" oninput="calcA()">
                 </div>
             </div>
-            <div class="input-group">
-                <label class="label">土地現值總額 (元)</label>
-                <input type="number" id="totalLandVal_B" class="input-readonly" readonly>
+
+            <div id="luxuryMsg_A" class="luxury-warning">
+                ⚠️ <strong>已達豪宅門檻！</strong><br>
+                <span id="luxuryReason_A"></span><br>
+                計算公式變更為：成交總價 × 房地比 × 20%
             </div>
+
+            <div id="luxuryZone_A" class="luxury-calc-zone">
+                <span style="font-weight:bold; color:var(--accent-red); margin-bottom:10px; display:block;">📐 豪宅稅需計算房地比：</span>
+                <div class="input-row">
+                    <div class="input-col">
+                        <label class="label">土地公告現值 (元/m²)</label>
+                        <input type="number" id="landPrice_A" oninput="calcA()">
+                    </div>
+                    <div class="input-col">
+                        <label class="label">土地面積 (m²)</label>
+                        <input type="number" id="landArea_A" oninput="calcA()">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="label">土地公告現值總額</label>
+                    <input type="number" id="totalLandVal_A" class="input-readonly" readonly>
+                </div>
+            </div>
+
+            <div class="result-box">
+                <div class="result-row">
+                    <span>計算說明：</span>
+                    <span class="result-val" id="calcMethod_A" style="font-size:0.9rem; font-weight:normal;">尚未計算</span>
+                </div>
+                <div class="result-row">
+                    <span>核定財產交易所得：</span>
+                    <span class="result-val highlight" id="result_A">0 元</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab2" class="card">
+            <div class="card-header">情境 B：核實認定 (有成本證明)</div>
 
             <div class="input-row">
                 <div class="input-col">
-                    <label class="label">房屋評定現值</label>
-                    <input type="number" id="houseVal_B" oninput="calcB()">
+                    <label class="label">賣出總額 (萬)</label>
+                    <input type="number" id="sellPrice_B" oninput="calcB()">
                 </div>
-                <div class="input-col" style="flex:0 0 60px;">
-                    <button class="btn-calc" onclick="calcHouseVal('B')">反推</button>
+                <div class="input-col">
+                    <label class="label">買入總額 (萬)</label>
+                    <input type="number" id="buyPrice_B" oninput="calcB()">
                 </div>
+            </div>
+            <div class="input-group">
+                <label class="label">相關費用 (萬) <span style="font-size:0.8rem; font-weight:normal;">(仲介/代書/契稅/裝修)</span></label>
+                <input type="number" id="expenses_B" value="0" oninput="calcB()">
+            </div>
+
+            <div class="helper-box" style="border-color: var(--primary);">
+                <div class="helper-title">📐 房地比計算</div>
+                
+                <div class="input-row">
+                    <div class="input-col">
+                        <label class="label">土地公告現值</label>
+                        <input type="number" id="landPricePerSqm" oninput="calcLandValB()">
+                    </div>
+                    <div class="input-col">
+                        <label class="label">土地面積 (m²)</label>
+                        <input type="number" id="landAreaSqm" oninput="calcLandValB()">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="label">土地現值總額 (元)</label>
+                    <input type="number" id="totalLandVal_B" class="input-readonly" readonly>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-col">
+                        <label class="label">房屋評定現值</label>
+                        <input type="number" id="houseVal_B" oninput="calcB()">
+                    </div>
+                    <div class="input-col" style="flex:0 0 60px;">
+                        <button class="btn-calc" onclick="calcHouseVal('B')">反推</button>
+                    </div>
+                </div>
+                
+                <div id="helperB" style="display:none; margin-top:10px;">
+                     稅單 <input type="number" id="taxBill_B" style="width:70px"> ÷ 稅率 <input type="number" id="taxRate_B" value="1.2" style="width:50px">% 
+                     <button onclick="runHelperB()" style="padding:2px 5px;">確認</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="label">房地比 (房屋佔比)</label>
+                <input type="text" id="houseRatio_B" class="input-readonly" readonly style="font-weight:bold; color:var(--primary);">
             </div>
             
-            <div id="helperB" style="display:none; margin-top:10px;">
-                 稅單 <input type="number" id="taxBill_B" style="width:70px"> ÷ 稅率 <input type="number" id="taxRate_B" value="1.2" style="width:50px">% 
-                 <button onclick="runHelperB()" style="padding:2px 5px;">確認</button>
+            <div class="result-box">
+                <div class="result-row">
+                    <span>房地總獲利：</span>
+                    <span class="result-val" id="totalProfit_B">0 元</span>
+                </div>
+                <div class="result-row" style="background:#FFF9C4;">
+                    <span>★ 財產交易所得 (應申報)：</span>
+                    <span class="result-val highlight" id="finalIncome_B">0 元</span>
+                </div>
+                <div style="font-size:0.8rem; color:#666; margin-top:5px;">
+                    *公式：(賣價-買價-費用) × 房地比
+                </div>
             </div>
         </div>
 
-        <div class="input-group">
-            <label class="label">房地比 (房屋佔比)</label>
-            <input type="text" id="houseRatio_B" class="input-readonly" readonly style="font-weight:bold; color:var(--primary);">
+        <div class="footer-copyright">
+            <p>Copyright © 宏國地政｜易丞地政出版 All Rights Reserved.</p>
+            <div class="contact-bar">
+                <a href="https://line.me/R/ti/p/@604gpqef" target="_blank" class="btn-contact btn-line">
+                    <i class="fab fa-line mr-1"></i> 官方 LINE
+                </a>
+                <a href="https://maps.app.goo.gl/qyKhdrKsG5QBo2BW8" target="_blank" class="btn-contact btn-google">
+                    <i class="fas fa-map-marker-alt mr-1"></i> Google 評論
+                </a>
+                <a href="https://www.facebook.com/062582589a/" target="_blank" class="btn-contact btn-fb">
+                    <i class="fab fa-facebook mr-1"></i> FB 粉絲頁
+                </a>
+                <a href="https://line.me/ti/g2/aVklWxyLP1RtfstQsslGQOlP4KViuFI7PPucdQ?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" class="btn-contact btn-vip">
+                    <i class="fas fa-crown mr-1"></i> VIP 社群
+                </a>
+                <button onclick="window.print()" class="btn-contact btn-print">
+                    <i class="fas fa-print mr-1"></i> 列印報表
+                </button>
+            </div>
         </div>
-        
-        <div class="result-box">
-            <div class="result-row">
-                <span>房地總獲利：</span>
-                <span class="result-val" id="totalProfit_B">0 元</span>
-            </div>
-            <div class="result-row" style="background:#FFF9C4;">
-                <span>★ 財產交易所得 (應申報)：</span>
-                <span class="result-val highlight" id="finalIncome_B">0 元</span>
-            </div>
-            <div style="font-size:0.8rem; color:#666; margin-top:5px;">
-                *公式：(賣價-買價-費用) × 房地比
-            </div>
-        </div>
+
     </div>
-
-    <div class="footer-copyright">
-        <p>Copyright © 宏國地政｜易丞地政出版 All Rights Reserved.</p>
-        <div class="contact-bar">
-            <a href="https://line.me/R/ti/p/@604gpqef" target="_blank" class="btn-contact btn-line">
-                <i>💬</i> 官方 LINE
-            </a>
-            <a href="https://maps.app.goo.gl/qyKhdrKsG5QBo2BW8" target="_blank" class="btn-contact btn-google">
-                <i>📍</i> Google 評論
-            </a>
-            <a href="https://www.facebook.com/062582589a/" target="_blank" class="btn-contact btn-fb">
-                <i>f</i> FB 粉絲頁
-            </a>
-            <a href="https://line.me/ti/g2/aVklWxyLP1RtfstQsslGQOlP4KViuFI7PPucdQ?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" class="btn-contact btn-vip">
-                <i>👑</i> VIP 社群
-            </a>
-            <button onclick="window.print()" class="btn-contact btn-print">
-                <i>🖨️</i> 列印報表
-            </button>
-        </div>
-    </div>
-
 </div>
 
 <script>
+    // ==========================================
+    // 🛡️ Nexus SSO 企業級門禁系統邏輯
+    // ==========================================
+    const gasAuthUrl = "https://script.google.com/macros/s/AKfycbwiIbmZWvNkOZW1wPBSZT1b5MKcfeeU8LtfqOiPZE0gN0VPkxJDguhKmb6rTJnSWWBnCA/exec";
+
+    function initAuth() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const authStatus = urlParams.get('nexus_auth');
+        const authGate = document.getElementById('nexus-auth-gate');
+        const mainContent = document.getElementById('main-content');
+        const errorMsg = document.getElementById('auth-error-msg');
+        const errorText = document.getElementById('auth-error-text');
+
+        let isUnlocked = false;
+
+        if (authStatus === 'success') {
+            localStorage.setItem('hg_line_auth', 'true');
+            isUnlocked = true;
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (authStatus === 'failed_not_friend') {
+            localStorage.removeItem('hg_line_auth');
+            isUnlocked = false;
+            errorText.innerText = "授權失敗：系統偵測到您尚未加入好友或已封鎖官方帳號。請重新登入並務必勾選加入好友。";
+            errorMsg.style.display = 'flex';
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            if (localStorage.getItem('hg_line_auth') === 'true') {
+                isUnlocked = true;
+            }
+        }
+
+        if (isUnlocked) {
+            authGate.style.display = 'none';
+            mainContent.style.display = 'block';
+            document.body.style.overflow = 'auto';
+        } else {
+            authGate.style.display = 'flex';
+            mainContent.style.display = 'none';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function loginWithLine() {
+        const currentBaseUrl = window.location.origin + window.location.pathname;
+        window.location.href = `${gasAuthUrl}?state=${encodeURIComponent(currentBaseUrl)}`;
+    }
+
+    // 啟動門禁系統
+    document.addEventListener('DOMContentLoaded', initAuth);
+
+    // ==========================================
+    // 🌟 原有核心試算邏輯 (一字不漏完美保留)
+    // ==========================================
     const taxData = {
         'Taipei': { 'luxury_price': 6000, 'luxury_unit': 120, 'districts': { '中山區': 48, '松山區': 48, '中正區': 48, '大安區': 48, '信義區': 48, '士林區': 46, '內湖區': 46, '大同區': 46, '南港區': 46, '北投區': 45, '萬華區': 45, '文山區': 45 } },
         'NewTaipei': { 'luxury_price': 4000, 'luxury_unit': 75, 'districts': { '板橋區': 44, '永和區': 44, '中和區': 44, '三重區': 44, '新店區': 44, '蘆洲區': 44, '新莊區': 44, '土城區': 44, '林口區': 42, '汐止區': 41, '樹林區': 41, '泰山區': 36, '五股區': 34, '三峽區': 34, '淡水區': 29, '八里區': 27, '鶯歌區': 24, '深坑區': 23, '其他': 14 } },
@@ -408,6 +488,7 @@
             if(type === 'A') calcA();
         }
     }
+    
     function runHelperB() {
         let tax = parseFloat(document.getElementById('taxBill_B').value) || 0;
         let rate = parseFloat(document.getElementById('taxRate_B').value) || 0;
